@@ -3,3 +3,11 @@
 
 # Python cache stuff
 *pycache*
+
+# Images
+*.jpg
+*.JPG
+*.jpeg
+*.png
+*.gif
+*.bmp

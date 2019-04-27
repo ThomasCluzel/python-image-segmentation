@@ -6,17 +6,27 @@ with less colors.
 
 ## Installation
 
-TODO: add a "setup.py" file in the root directory
-
-## Usage
+### For those who want to use
 
 TODO
 
+### For those who want to contribute
+
+```sh
+$ pipenv install --dev
+```
+If you don't want to use `pipenv` it is also possible
+to run `pip install -r requirements.txt`
+
+Then, edit files, add features...
+
+## Usage
+
+TODO: decide a CLI
+
 ## TODOs
 
-* setup pipenv
-* setup requirements.txt
-* add tests
+* add tests with pytest
 * design a GUI
 * write docs
 
