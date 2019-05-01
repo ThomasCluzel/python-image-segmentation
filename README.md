@@ -1,8 +1,8 @@
 # Picture2Avatar
 
-This project is a simple script that segment an
-image to obtain something that looks like a cartoon
-with less colors.
+This project is a simple script that process a
+photograph to turn it into an avatar usable as
+profile picture.
 
 ## Installation
 
@@ -15,28 +15,27 @@ TODO
 ```sh
 $ pipenv install --dev
 ```
-If you don't want to use `pipenv` it is also possible
-to run `pip install -r requirements.txt`
 
 Then, edit files, add features...
 
 ## Usage
 
-TODO: decide a CLI
+Apply an algorithm to a picture and store the result in a file:
+
+```sh
+python3 picture2avatar.py input_picture.jpg pre -o result.jpg
+```
+
+If no output file is given, the picture is displayed on the screen.
 
 ## TODOs
 
 * add tests with pytest
-* design a GUI
-* write docs
+* design a GUI to select the input and the algorithm and see
+the result on screen and optionally save it
+* package a stable version of the script
 
 ## Ideas
 
-* split and merge to determine parts of the image
-* browse the image to collect all color used then group them
-and apply a average color
-* remove bits of precision of components RGB -> 3 bits for each?
-
------------------------------------------------
-
-Thomas Cluzel, April 24th 2019
+* split and merge (region growth) to determine parts of the image
+  * compute the mean color used in each zone and apply it to all pixel of the zone
