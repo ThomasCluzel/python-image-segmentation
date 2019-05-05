@@ -37,5 +37,4 @@ the result on screen and optionally save it
 
 ## Ideas
 
-* split and merge (region growth) to determine parts of the image
-  * compute the mean color used in each zone and apply it to all pixel of the zone
+* Get the list of every colors used in the image and perform a K-mean 
