@@ -37,4 +37,5 @@ the result on screen and optionally save it
 
 ## Ideas
 
-* Get the list of every colors used in the image and perform a K-mean 
+* Get the list of every colors used in the image and perform an
+ascending clustering and keep a defined number of colors

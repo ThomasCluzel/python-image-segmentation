@@ -12,7 +12,7 @@ at the end of the file.
 
 from sys import stderr
 
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image
 
 
 def main(input_path: str, algorithm: str, output_path: str = None) -> None:
@@ -38,8 +38,8 @@ def main(input_path: str, algorithm: str, output_path: str = None) -> None:
         avatar = precision_downgrade(picture)
     elif(algorithm == "grow"):
         avatar = region_growth(picture)
-    elif(algorithm == "km"):
-        pass # TODO: k-means
+    elif(algorithm == "clu"):
+        pass  # TODO: clustering
     else:
         print("Unknown algorithm:", algorithm, file=stderr)
     # Save or display the result
@@ -59,7 +59,7 @@ def precision_downgrade(img: Image, mask_length: int = 1) -> Image:
     :param mask_length: int, the number of most significant bits to keep
     :return: Image, modified image
     """
-    mask = lambda p: p & ((0xFF << (8 - mask_length)) & 0xFF)
+    def mask(p): return p & ((0xFF << (8 - mask_length)) & 0xFF)
     return img.point(mask)
 
 
@@ -85,13 +85,13 @@ def region_growth(img: Image, maxgap: int = 25) -> Image:
         max_reg = img.getpixel((i, j))
         while True:
             if((not (0 <= i < img.size[0] and 0 <= j < img.size[1])) or
-            zones[i][j] != 0 or
-            not all(abs(max(img.getpixel((i, j))[b], max_reg[b]) - min(img.getpixel((i_old, j_old))[b], min_reg[b])) < maxgap for b in range(3))):
-                if(not stack1): # stack1 empty
+               zones[i][j] != 0 or
+               not all(abs(max(img.getpixel((i, j))[b], max_reg[b]) - min(img.getpixel((i_old, j_old))[b], min_reg[b])) < maxgap for b in range(3))):
+                if(not stack1):  # stack1 empty
                     if(not stack2):
                         if(not stack3):
                             break
-                        else: # stack3 not empty
+                        else:  # stack3 not empty
                             j_old = stack3.pop()
                             i_old = stack3.pop()
                             j = stack3.pop()
@@ -99,29 +99,31 @@ def region_growth(img: Image, maxgap: int = 25) -> Image:
                             i_old = i
                             j_old = j
                             j = j + 1
-                    else: # stack2 not empty
+                    else:  # stack2 not empty
                         j_old = stack2.pop()
                         i_old = stack2.pop()
                         j = stack2.pop()
                         i = stack2.pop()
-                        stack3.extend( (i, j, i_old, j_old) )
+                        stack3.extend((i, j, i_old, j_old))
                         i_old = i
                         j_old = j
                         j = j - 1
-                else: # stack1 not empty
+                else:  # stack1 not empty
                     j_old = stack1.pop()
                     i_old = stack1.pop()
                     j = stack1.pop()
                     i = stack1.pop()
-                    stack2.extend( (i, j, i_old, j_old) )
+                    stack2.extend((i, j, i_old, j_old))
                     i_old = i
                     j_old = j
                     i = i + 1
             else:
                 zones[i][j] = zoneNb
-                max_reg = [max(img.getpixel((i, j))[b], max_reg[b]) for b in range(3)]
-                min_reg = [min(img.getpixel((i, j))[b], min_reg[b]) for b in range(3)]
-                stack1.extend( (i, j, i_old, j_old) )
+                max_reg = [max(img.getpixel((i, j))[b], max_reg[b])
+                           for b in range(3)]
+                min_reg = [min(img.getpixel((i, j))[b], min_reg[b])
+                           for b in range(3)]
+                stack1.extend((i, j, i_old, j_old))
                 i_old = i
                 j_old = j
                 i = i - 1
@@ -135,16 +137,16 @@ def region_growth(img: Image, maxgap: int = 25) -> Image:
                 grow(zones, i, j, zoneNB)
                 zoneNB += 1
     # Compute the average color of each zone
-    sum_color = [ [0, 0, 0] for i in range(zoneNB) ]
-    count_color = [ 0 for i in range(zoneNB) ]
-    count_color[0] = 1 # avoid ZeroDivisionError
+    sum_color = [[0, 0, 0] for i in range(zoneNB)]
+    count_color = [0 for i in range(zoneNB)]
+    count_color[0] = 1  # avoid ZeroDivisionError
     for i in range(w):
         for j in range(h):
             for b in range(3):
                 sum_color[zones[i][j]][b] += img.getpixel((i, j))[b]
             count_color[zones[i][j]] += 1
-    avg_color = [ [sum_color[i][b] // count_color[i] for b in range(3) ] \
-        for i in range(zoneNB) ]
+    avg_color = [[sum_color[i][b] // count_color[i] for b in range(3)]
+                 for i in range(zoneNB)]
     # Apply the colors to the result
     result = Image.new("RGB", (w, h))
     for i in range(w):
@@ -159,9 +161,9 @@ if __name__ == "__main__":
         description='Process an photograph to extract a simple avatar.')
     parser.add_argument("input_path", help="path to the photograph to process")
     parser.add_argument("algorithm", choices=[
-                        "pre", "grow", "km"], help="algorithm to apply")
+                        "pre", "grow", "clu"], help="algorithm to apply")
     parser.add_argument("-o", "--output", dest="output_path",
                         help="path to store the resulting picture in"
-                            " (display if not provided)")
+                        " (display if not provided)")
     args = parser.parse_args()
     main(**vars(args))
