@@ -39,7 +39,7 @@ def main(input_path: str, algorithm: str, output_path: str = None) -> None:
     elif(algorithm == "grow"):
         avatar = region_growth(picture)
     elif(algorithm == "clu"):
-        pass  # TODO: clustering
+        avatar = clustering(picture)
     else:
         print("Unknown algorithm:", algorithm, file=stderr)
     # Save or display the result
@@ -49,7 +49,7 @@ def main(input_path: str, algorithm: str, output_path: str = None) -> None:
         avatar.show()
 
 
-def precision_downgrade(img: Image, mask_length: int = 1) -> Image:
+def precision_downgrade(img: Image.Image, mask_length: int = 1) -> Image.Image:
     """Removes some least significant bits of RGB components of the image.
 
     This function mask the RGB values of the image and returns the result.
@@ -63,7 +63,7 @@ def precision_downgrade(img: Image, mask_length: int = 1) -> Image:
     return img.point(mask)
 
 
-def region_growth(img: Image, maxgap: int = 25) -> Image:
+def region_growth(img: Image.Image, maxgap: int = 25) -> Image.Image:
     """Segments img and returns the result
 
     This function performs the region growth algorithm on the picture given
@@ -152,6 +152,65 @@ def region_growth(img: Image, maxgap: int = 25) -> Image:
     for i in range(w):
         for j in range(h):
             result.putpixel((i, j), tuple(avg_color[zones[i][j]]))
+    return result
+
+
+def clustering(img: Image.Image, nbColorKeep: int = 15) -> Image.Image:
+    """Performs a clustering on the colors of the image
+
+    This function collect all colors used in the image, then perform an
+    ascending clustering to group them (and compute the average), finally
+    keeps nbColorKeep colors and apply them to the image to obtain the
+    result.
+
+    :param img: Image, the input picture
+    :param nbColorKeep: int >1, the number of colors used in the resulting image
+    :return: Image, same as img but with nbColorKeep colors
+    """
+    # Some inner functions
+    def d_color(a, b): # "distance" between two colors
+        return sum((b[i] - a[i])*(b[i] - a[i]) for i in range(len(a)))
+    def get_closest_colors_index(colors):
+        min_d = d_color(colors[0], colors[1])
+        min_i = colors[0]
+        min_j = colors[1]
+        for i in range(len(colors)):
+            for j in range(i + 1, len(colors)):
+                d = d_color(colors[i], colors[j])
+                if(d < min_d):
+                    min_d = d
+                    min_i = i
+                    min_j = j
+        return min_i, min_j
+    def closest_color(color, color_palette):
+        closest = color_palette[0]
+        d_closest = d_color(color, closest)
+        for c in color_palette[1:]:
+            d = d_color(color, c)
+            if(d < d_closest):
+                d_closest = d
+                closest = c
+        return closest
+    ## Beginning of the function
+    w, h = img.size
+    # List all colors used in the original picture
+    original_color_palette = {img.getpixel((i, j)) for j in range(h) for i in range(w)}
+    colors = list(original_color_palette)
+    # Perform the clustering
+    while(len(colors) > nbColorKeep):
+        # merge the two closest colors
+        a, b = get_closest_colors_index(colors)
+        c = [(aa+bb)/2 for aa,bb in zip(colors[a], colors[b])]
+        colors.pop(a)
+        colors.pop(b)
+        colors.append(c)
+    # Apply the new colors to the original picture
+    color_map = { original_color: [ round(b) for b in closest_color(original_color, colors) ]
+        for original_color in original_color_palette }
+    result = Image.new("RGB", (w, h))
+    for i in range(w):
+        for j in range(h):
+            result.putpixel( (i, j), color_map[img.getpixel( (i, j))])
     return result
 
 
