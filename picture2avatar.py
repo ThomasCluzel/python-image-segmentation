@@ -15,15 +15,16 @@ from sys import stderr
 from PIL import Image
 
 
-def main(input_path: str, algorithm: str, output_path: str = None) -> None:
+def main(input_path: str, algorithm: str, output_path: str = None, param: int = None) -> None:
     """Main function of the program.
 
     This function loads an input image and generates an output
     one using the specified algorithm.
 
     :param input_path: str, path to the input photograph
-    :param algorithm: str, the algorithm to apply to input ("pre", "snm")
+    :param algorithm: str, the algorithm to apply to input ("pre", "grow", "clu", "greed")
     :param output_path: str, path to store the output picture (display if None)
+    :param param: int, parameter to give to the algorithm
     """
     picture = None
     # Load the picture
@@ -35,11 +36,13 @@ def main(input_path: str, algorithm: str, output_path: str = None) -> None:
     # Apply the specified algorithm
     avatar = None
     if(algorithm == "pre"):
-        avatar = precision_downgrade(picture)
+        avatar = precision_downgrade(picture) if not param else precision_downgrade(picture, param)
     elif(algorithm == "grow"):
-        avatar = region_growth(picture)
+        avatar = region_growth(picture) if not param else region_growth(picture, param)
     elif(algorithm == "clu"):
-        avatar = clustering(picture)
+        avatar = clustering(picture) if not param else clustering(picture, param)
+    elif(algorithm == "greed"):
+        avatar = greedy_algorithm(picture) if not param else greedy_algorithm(picture, param)
     else:
         print("Unknown algorithm:", algorithm, file=stderr)
     # Save or display the result
@@ -214,15 +217,66 @@ def clustering(img: Image.Image, nbColorKeep: int = 15) -> Image.Image:
     return result
 
 
+def greedy_algorithm(img: Image.Image, nbColorKeep: int = 10) -> Image.Image:
+    """Reduce the number of colors in the image
+
+    This function try to compute the nbColorKeep average colors of an image
+    with a greedy algorithm and then apply this new palette of color to the
+    image to generate the output.
+    The result is like an overcompressed jpeg image.
+
+    :param img: Image, the input picture
+    :param nbColorKeep: int >1, the number of colors used in the resulting image
+    :return: Image, same as img but with nbColorKeep colors
+    """
+    # Inner functions
+    def d_color(a, b): # "distance" between two colors
+        return sum((b[i] - a[i])*(b[i] - a[i]) for i in range(len(a)))
+    def get_closest_color_index(color, color_palette):
+        index = 0
+        d_closest = d_color(color, color_palette[index])
+        for i in range(1, len(color_palette)):
+            d = d_color(color, color_palette[i])
+            if(d < d_closest):
+                d_closest = d
+                index = i
+        return index
+    # Beginning of the function
+    w, h = img.size
+    # Generate the list of initial colors
+    colors = [ [255*i/(nbColorKeep-1) for b in range(3)] for i in range(nbColorKeep) ]
+    colors_weight = [ 0 for i in range(nbColorKeep) ]
+    for i in range(w):
+        for j in range(h):
+            c = img.getpixel((i, j))
+            index = get_closest_color_index(c, colors)
+            colors[index] = [ (colors_weight[index]*colors[index][b] + \
+                c[b])/(colors_weight[index] + 1) for b in range(3) ]
+            colors_weight[index] += 1
+    # round all the colors
+    colors = [ tuple([round(band) for band in color]) for color in colors ]
+    # Generate the result
+    result = Image.new("RGB", (w, h))
+    for i in range(w):
+        for j in range(h):
+            c = img.getpixel((i, j))
+            index = get_closest_color_index(c, colors)
+            result.putpixel((i, j), colors[index])
+    return result
+
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(
         description='Process an photograph to extract a simple avatar.')
     parser.add_argument("input_path", help="path to the photograph to process")
-    parser.add_argument("algorithm", choices=[
-                        "pre", "grow", "clu"], help="algorithm to apply")
+    parser.add_argument("algorithm",
+                        choices=["pre", "grow", "clu", "greed"],
+                        help="algorithm to apply")
     parser.add_argument("-o", "--output", dest="output_path",
                         help="path to store the resulting picture in"
                         " (display if not provided)")
+    parser.add_argument("-p", "--param", type=int,
+                        help="an argument to the algorithm")
     args = parser.parse_args()
     main(**vars(args))

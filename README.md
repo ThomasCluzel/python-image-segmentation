@@ -1,8 +1,7 @@
 # Picture2Avatar
 
 This project is a simple script that process a
-photograph to turn it into an avatar usable as
-profile picture.
+photograph to turn it into an avatar.
 
 ## Installation
 
@@ -23,10 +22,12 @@ Then, edit files, add features...
 Apply an algorithm to a picture and store the result in a file:
 
 ```sh
-python3 picture2avatar.py input_picture.jpg pre -o result.jpg
+python3 picture2avatar.py input_picture.jpg pre -o result.jpg -p 10
 ```
 
 If no output file is given, the picture is displayed on the screen.
+
+If no parameter is given to the algorithm (-p value) the default one is used.
 
 ## TODOs
 
@@ -34,8 +35,3 @@ If no output file is given, the picture is displayed on the screen.
 * design a GUI to select the input and the algorithm and see
 the result on screen and optionally save it
 * package a stable version of the script
-
-## Ideas
-
-* Get the list of every colors used in the image and perform an
-ascending clustering and keep a defined number of colors
