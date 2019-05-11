@@ -5,6 +5,8 @@ verify_ssl = true
 
 [dev-packages]
 pytest = ">=4.4.1"
+setuptools = ">=41.0.1"
+wheel = ">=0.33.3"
 
 [packages]
 pillow = ">=6.0.0"
