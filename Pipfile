@@ -7,6 +7,8 @@ verify_ssl = true
 pytest = ">=4.4.1"
 setuptools = ">=41.0.1"
 wheel = ">=0.33.3"
+coverage = ">=4.5.3"
+pytest-cov = ">=2.7.1"
 
 [packages]
 pillow = ">=6.0.0"
