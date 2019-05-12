@@ -20,6 +20,11 @@ pipenv install --dev
 
 Then, edit files, add features...
 
+To run unit tests and generate coverage info:
+```sh
+pipenv run pytest --cov=picture2avatar --cov-report html
+```
+
 ## Usage
 
 Apply an algorithm to a picture and store the result in a file:
@@ -51,6 +56,5 @@ the picture (faster then clustering)
 
 ## TODOs
 
-* add tests with pytest
 * design a GUI to select the input and the algorithm and see
 the result on screen and optionally save it

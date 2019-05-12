@@ -5,9 +5,9 @@
 Picture2Avatar module
 
 A module containing functions to segment a photograph
-and turn it into an avatar.
+and turn it into an avatar (more or less).
 Can be invoked from the command line, see arguments
-at the end of the file.
+at the end of the file (or invoke with -h).
 """
 
 from sys import stderr
@@ -30,9 +30,11 @@ def main(input_path: str, algorithm: str, output_path: str = None, param: int = 
     # Load the picture
     try:
         picture = Image.open(input_path)
-    except IOError:
-        print(f"The picture {input_path} could not be loaded.", file=stderr)
-        return
+    except IOError as e:
+        if __name__ == "__main__":
+            print(f"The picture {input_path} could not be loaded.", file=stderr)
+        else:
+            raise e # file cannot be openned
     # Apply the specified algorithm
     avatar = None
     if(algorithm == "pre"):
@@ -44,7 +46,10 @@ def main(input_path: str, algorithm: str, output_path: str = None, param: int = 
     elif(algorithm == "greed"):
         avatar = greedy_algorithm(picture) if not param else greedy_algorithm(picture, param)
     else:
-        print("Unknown algorithm:", algorithm, file=stderr)
+        if __name__ == "__main__":
+            print("Unknown algorithm:", algorithm, file=stderr)
+        else:
+            raise ValueError # unknown algorithm
     # Save or display the result
     if(output_path):
         avatar.save(output_path)
@@ -173,18 +178,18 @@ def clustering(img: Image.Image, nbColorKeep: int = 15) -> Image.Image:
     # Some inner functions
     def d_color(a, b): # "distance" between two colors
         return sum((b[i] - a[i])*(b[i] - a[i]) for i in range(len(a)))
-    def get_closest_colors_index(colors):
+    def get_closest_colors(colors):
         min_d = d_color(colors[0], colors[1])
-        min_i = colors[0]
-        min_j = colors[1]
+        a = colors[0]
+        b = colors[1]
         for i in range(len(colors)):
             for j in range(i + 1, len(colors)):
                 d = d_color(colors[i], colors[j])
                 if(d < min_d):
                     min_d = d
-                    min_i = i
-                    min_j = j
-        return min_i, min_j
+                    a = colors[i]
+                    b = colors[j]
+        return a, b
     def closest_color(color, color_palette):
         closest = color_palette[0]
         d_closest = d_color(color, closest)
@@ -202,10 +207,10 @@ def clustering(img: Image.Image, nbColorKeep: int = 15) -> Image.Image:
     # Perform the clustering
     while(len(colors) > nbColorKeep):
         # merge the two closest colors
-        a, b = get_closest_colors_index(colors)
-        c = [(aa+bb)/2 for aa,bb in zip(colors[a], colors[b])]
-        colors.pop(a)
-        colors.pop(b)
+        a, b = get_closest_colors(colors)
+        c = [(aa+bb)/2 for aa,bb in zip(a, b)]
+        colors.remove(a)
+        colors.remove(b)
         colors.append(c)
     # Apply the new colors to the original picture
     color_map = { original_color: [ round(b) for b in closest_color(original_color, colors) ]
@@ -213,7 +218,7 @@ def clustering(img: Image.Image, nbColorKeep: int = 15) -> Image.Image:
     result = Image.new("RGB", (w, h))
     for i in range(w):
         for j in range(h):
-            result.putpixel( (i, j), color_map[img.getpixel( (i, j))])
+            result.putpixel((i, j), tuple(color_map[img.getpixel((i, j))]))
     return result
 
 
