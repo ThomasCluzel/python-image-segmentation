@@ -163,17 +163,17 @@ def region_growth(img: Image.Image, maxgap: int = 25) -> Image.Image:
     return result
 
 
-def clustering(img: Image.Image, nbColorKeep: int = 15) -> Image.Image:
+def clustering(img: Image.Image, nb_color_keep: int = 15) -> Image.Image:
     """Performs a clustering on the colors of the image
 
     This function collect all colors used in the image, then perform an
     ascending clustering to group them (and compute the average), finally
-    keeps nbColorKeep colors and apply them to the image to obtain the
+    keeps nb_color_keep colors and apply them to the image to obtain the
     result.
 
     :param img: Image, the input picture
-    :param nbColorKeep: int >1, the number of colors used in the resulting image
-    :return: Image, same as img but with nbColorKeep colors
+    :param nb_color_keep: int >1, the number of colors used in the resulting image
+    :return: Image, same as img but with nb_color_keep colors
     """
     # Some inner functions
     def d_color(a, b): # "distance" between two colors
@@ -205,7 +205,7 @@ def clustering(img: Image.Image, nbColorKeep: int = 15) -> Image.Image:
     original_color_palette = {img.getpixel((i, j)) for j in range(h) for i in range(w)}
     colors = list(original_color_palette)
     # Perform the clustering
-    while(len(colors) > nbColorKeep):
+    while(len(colors) > nb_color_keep):
         # merge the two closest colors
         a, b = get_closest_colors(colors)
         c = [(aa+bb)/2 for aa,bb in zip(a, b)]
@@ -222,17 +222,17 @@ def clustering(img: Image.Image, nbColorKeep: int = 15) -> Image.Image:
     return result
 
 
-def greedy_algorithm(img: Image.Image, nbColorKeep: int = 10) -> Image.Image:
+def greedy_algorithm(img: Image.Image, nb_color_keep: int = 10) -> Image.Image:
     """Reduce the number of colors in the image
 
-    This function try to compute the nbColorKeep average colors of an image
+    This function try to compute the nb_color_keep average colors of an image
     with a greedy algorithm and then apply this new palette of color to the
     image to generate the output.
     The result is like an overcompressed jpeg image.
 
     :param img: Image, the input picture
-    :param nbColorKeep: int >1, the number of colors used in the resulting image
-    :return: Image, same as img but with nbColorKeep colors
+    :param nb_color_keep: int >1, the number of colors used in the resulting image
+    :return: Image, same as img but with nb_color_keep colors
     """
     # Inner functions
     def d_color(a, b): # "distance" between two colors
@@ -249,8 +249,8 @@ def greedy_algorithm(img: Image.Image, nbColorKeep: int = 10) -> Image.Image:
     # Beginning of the function
     w, h = img.size
     # Generate the list of initial colors
-    colors = [ [255*i/(nbColorKeep-1) for b in range(3)] for i in range(nbColorKeep) ]
-    colors_weight = [ 0 for i in range(nbColorKeep) ]
+    colors = [ [255*i/(nb_color_keep-1) for b in range(3)] for i in range(nb_color_keep) ]
+    colors_weight = [ 0 for i in range(nb_color_keep) ]
     for i in range(w):
         for j in range(h):
             c = img.getpixel((i, j))
