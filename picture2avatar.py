@@ -49,7 +49,7 @@ def main(input_path: str, algorithm: str, output_path: str = None, param: int = 
         if __name__ == "__main__":
             print("Unknown algorithm:", algorithm, file=stderr)
         else:
-            raise ValueError # unknown algorithm
+            raise ValueError(f"Unknown algorithm: {algorithm}")
     # Save or display the result
     if(output_path):
         avatar.save(output_path)
