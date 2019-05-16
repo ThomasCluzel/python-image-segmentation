@@ -7,6 +7,7 @@ This file contains the GUI.
 
 import os
 import sys
+import tempfile
 from tkinter import Tk, Frame, Label, Entry, Button, Canvas, Text, Scale, StringVar, IntVar
 from tkinter import filedialog, messagebox
 
@@ -18,7 +19,8 @@ from picture2avatar import main as picture2avatar_main
 class Picture2AvatarGUI(Frame):
     """
     The window to display
-    TODO: replace Scale for Entry and parse after
+    TODO: use threads to process pictures
+    TODO: better filetype in browse
     """
     def __init__(self, window, width=800, height=600, **kwargs):
         """
@@ -44,20 +46,20 @@ class Picture2AvatarGUI(Frame):
         self.canvas_output_image = Canvas(self.frame_pictures)
         self.output_image = self.canvas_output_image.create_image(0,0, anchor="nw")
         self.label_alg_pre = Label(self.frame_alg_pre, text="mask_length=")
-        self.int_alg_pre_max_length = IntVar()
-        self.scale_alg_pre_max_length = Scale(self.frame_alg_pre, variable=self.int_alg_pre_max_length, from_=1, to=7)
+        self.str_alg_pre_max_length = StringVar()
+        self.scale_alg_pre_max_length = Entry(self.frame_alg_pre, textvariable=self.str_alg_pre_max_length, width=5)
         self.button_alg_pre_run = Button(self.frame_alg_pre, text="run", command=self.run_pre)
         self.label_alg_grow = Label(self.frame_alg_grow, text="maxgap=")
-        self.int_alg_grow_maxgap = IntVar()
-        self.scale_alg_grow_maxgap = Scale(self.frame_alg_grow, variable=self.int_alg_grow_maxgap, from_=0, to=255)
+        self.str_alg_grow_maxgap = StringVar()
+        self.scale_alg_grow_maxgap = Entry(self.frame_alg_grow, textvariable=self.str_alg_grow_maxgap, width=5)
         self.button_alg_grow_run = Button(self.frame_alg_grow, text="run", command=self.run_grow)
         self.label_alg_clu = Label(self.frame_alg_clu, text="nb_color_keep=")
-        self.int_alg_clu_nb_color_keep = IntVar()
-        self.scale_alg_clu_nb_color_keep = Scale(self.frame_alg_clu, variable=self.int_alg_clu_nb_color_keep, from_=1, to=10000)
+        self.str_alg_clu_nb_color_keep = StringVar()
+        self.scale_alg_clu_nb_color_keep = Entry(self.frame_alg_clu, textvariable=self.str_alg_clu_nb_color_keep, width=5)
         self.button_alg_clu_run = Button(self.frame_alg_clu, text="run", command=self.run_clu)
         self.label_alg_greed = Label(self.frame_alg_greed, text="nb_color_keep=")
-        self.int_alg_greed_nb_color_keep = IntVar()
-        self.scale_alg_greed_nb_color_keep = Scale(self.frame_alg_greed, variable=self.int_alg_greed_nb_color_keep, from_=1, to=10000)
+        self.str_alg_greed_nb_color_keep = StringVar()
+        self.scale_alg_greed_nb_color_keep = Entry(self.frame_alg_greed, textvariable=self.str_alg_greed_nb_color_keep, width=5)
         self.button_alg_greed_run = Button(self.frame_alg_greed, text="run", command=self.run_greed)
         self.button_save_as = Button(self.frame_save_as, text="Save output as", command=self.save_as)
         # Display the widgets in the window
@@ -92,13 +94,14 @@ class Picture2AvatarGUI(Frame):
         This function is called when the user click the browse button to select an input picture.
         It opens a dialog box to select a file.
         """
-        filename = filedialog.askopenfilename(initialdir=".", title="Select a picture", filetypes=(("jpeg files","*.jpg"),("all files","*.*")))
+        filename = filedialog.askopenfilename(initialdir=".", title="Select a picture",
+            filetypes=(("jpeg files","*.jpg"),("png files","*.png"),("bitmap files","*.bmp"),("all files","*.*")))
         self.str_input_path.set(filename)
         img = None
         try:
             img = Image.open(filename)
         except IOError:
-            messagebox.showerror("Error", "The file %s is not a picture" % filename, parent=self)
+            messagebox.showerror("Error", "The file %s is not a picture." % filename, parent=self)
             return
         img = img.resize((400, 400*img.size[1]//img.size[0]))
         self.canvas_input_image["width"] = img.size[0]
@@ -107,9 +110,40 @@ class Picture2AvatarGUI(Frame):
         self.canvas_input_image.itemconfig(self.input_image, image=self.input_image_tk)
 
     def run_pre(self):
-        """TODO
         """
-        pass
+        This function is called when the user click the "run" button in the pre frame.
+        It runs the algorithm to perform the computation and then display the picture.
+        """
+        # parse the argument if any
+        param = self.str_alg_pre_max_length.get()
+        try:
+            param = int(param) if param else 1
+        except ValueError:
+            messagebox.showerror("Error", "Please enter an integer value between 1 and 8.", parent=self)
+            return
+        if(not 1<=param<=8):
+            messagebox.showerror("Error", "Please enter a value between 1 and 8.", parent=self)
+            return
+        output_path = tempfile.gettempdir() + "/out.png"
+        # process -> in a thread (would be better)
+        try:
+            picture2avatar_main(self.str_input_path.get(), "pre", output_path, param)
+        except:
+            messagebox.showerror("Error", "The picture cannot be openned.", parent=self)
+            return
+        # get the result
+        img = None
+        try:
+            img = Image.open(output_path)
+        except IOError:
+            messagebox.showerror("Error", "The output was not generated.", parent=self)
+            return
+        img = img.resize((400, 400*img.size[1]//img.size[0]))
+        self.canvas_output_image["width"] = img.size[0]
+        self.canvas_output_image["height"] = img.size[1]
+        self.output_image_tk = ImageTk.PhotoImage(img) # to keep a reference
+        self.canvas_output_image.itemconfig(self.output_image, image=self.output_image_tk)
+        os.remove(output_path)
 
     def run_grow(self):
         """TODO
