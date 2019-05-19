@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="picture2avatar",
-    version="1.0.0",
+    version="1.1.0",
     author="Thomas Cluzel",
     author_email="thomas.cluzel@etu.uca.fr",
     description="A small package to perform some image processing",
