@@ -11,6 +11,8 @@ an image with less shading.
 Checkout to the release branch and follow the instructions to install
 the module with `pip`.
 
+Or clone this repository and use the GUI (guipicture2avatar.pyw).
+
 ### For those who want to contribute
 
 ```sh
