@@ -8,6 +8,7 @@ This file contains the GUI.
 import os
 import sys
 import tempfile
+from shutil import copyfile
 from tkinter import Tk, Frame, Label, Entry, Button, Canvas, Text, Scale, StringVar, IntVar
 from tkinter import filedialog, messagebox
 
@@ -19,9 +20,9 @@ from picture2avatar import main as picture2avatar_main
 class Picture2AvatarGUI(Frame):
     """
     The window to display
-    TODO: use threads to process pictures
-    TODO: better filetype in browse
     """
+    OUTPUT_PATH = tempfile.gettempdir() + "/out.png" # temporary location of the generated picture
+
     def __init__(self, window, width=800, height=600, **kwargs):
         """
         Sets up all the widgets in the window
@@ -89,13 +90,21 @@ class Picture2AvatarGUI(Frame):
         self.button_alg_greed_run.pack(side="left")
         self.button_save_as.pack(side="right")
 
+    def destroy(self):
+        """
+        This method is called when the program is closed (because it is
+        the main window). It removes temporary files.
+        """
+        Frame.destroy(self)
+        os.remove(Picture2AvatarGUI.OUTPUT_PATH)
+
     def browse(self):
         """
-        This function is called when the user click the browse button to select an input picture.
+        This method is called when the user click the browse button to select an input picture.
         It opens a dialog box to select a file.
         """
         filename = filedialog.askopenfilename(initialdir=".", title="Select a picture",
-            filetypes=(("jpeg files","*.jpg"),("png files","*.png"),("bitmap files","*.bmp"),("all files","*.*")))
+            filetypes=(("all files","*.*"),("jpeg files","*.jpg"),("png files","*.png"),("bitmap files","*.bmp")))
         self.str_input_path.set(filename)
         img = None
         try:
@@ -111,7 +120,7 @@ class Picture2AvatarGUI(Frame):
 
     def run_pre(self):
         """
-        This function is called when the user click the "run" button in the pre frame.
+        This method is called when the user click the "run" button in the pre frame.
         It runs the algorithm to perform the computation and then display the picture.
         """
         # parse the argument if any
@@ -124,26 +133,7 @@ class Picture2AvatarGUI(Frame):
         if(not 1<=param<=8):
             messagebox.showerror("Error", "Please enter a value between 1 and 8.", parent=self)
             return
-        output_path = tempfile.gettempdir() + "/out.png"
-        # process -> in a thread (would be better)
-        try:
-            picture2avatar_main(self.str_input_path.get(), "pre", output_path, param)
-        except:
-            messagebox.showerror("Error", "The picture cannot be openned.", parent=self)
-            return
-        # get the result
-        img = None
-        try:
-            img = Image.open(output_path)
-        except IOError:
-            messagebox.showerror("Error", "The output was not generated.", parent=self)
-            return
-        img = img.resize((400, 400*img.size[1]//img.size[0]))
-        self.canvas_output_image["width"] = img.size[0]
-        self.canvas_output_image["height"] = img.size[1]
-        self.output_image_tk = ImageTk.PhotoImage(img) # to keep a reference
-        self.canvas_output_image.itemconfig(self.output_image, image=self.output_image_tk)
-        os.remove(output_path)
+        self.after_idle(callback_run, self, "pre", param)
 
     def run_grow(self):
         """TODO
@@ -161,20 +151,56 @@ class Picture2AvatarGUI(Frame):
         pass
 
     def save_as(self):
-        """TODO
         """
-        pass
-        
+        This method is called when the user press the save as button and prompts
+        a dialog box for him to save the output image.
+        """
+        save_filename = filedialog.asksaveasfilename(initialdir=".", title="Select a file",
+            filetypes=(("png files","*.png"),("jpeg files","*.jpg"),("bitmap files","*.bmp"),("all files","*.*")))
+        if("." not in save_filename[-5:]): # give png as default extension if the file does not have any
+            save_filename += ".png"
+        try:
+            copyfile(Picture2AvatarGUI.OUTPUT_PATH, save_filename)
+        except:
+            messagebox.showerror("Error", "The image could not be saved.", parent=self)
+
+
+def callback_run(self, algorithm, param):
+    """
+    This function is to be called by run_*() methods of the GUI class to
+    process input images outside the event loop. 
+    """
+    try:
+        picture2avatar_main(self.str_input_path.get(), algorithm, Picture2AvatarGUI.OUTPUT_PATH, param)
+    except:
+        if(not self.str_input_path.get()):
+            messagebox.showerror("Error", "Please, select a picture.", parent=self)
+        else:
+            messagebox.showerror("Error", "The picture cannot be openned.", parent=self)
+        return
+    # get the result
+    img = None
+    try:
+        img = Image.open(Picture2AvatarGUI.OUTPUT_PATH)
+    except IOError:
+        messagebox.showerror("Error", "The output was not generated.", parent=self)
+        return
+    # display the result
+    img = img.resize((400, 400*img.size[1]//img.size[0]))
+    self.canvas_output_image["width"] = img.size[0]
+    self.canvas_output_image["height"] = img.size[1]
+    self.output_image_tk = ImageTk.PhotoImage(img) # to keep a reference
+    self.canvas_output_image.itemconfig(self.output_image, image=self.output_image_tk)
 
 def gui():
     """
     This function display the GUI.
     """
     # Create the window and its contents
-    window = Tk()
-    window.title("Picture2Avatar")
+    root = Tk()
+    root.title("Picture2Avatar")
     # window.iconbitmap("icon.ico") # TODO: find an icon
-    inter = Picture2AvatarGUI(window)
+    inter = Picture2AvatarGUI(root)
     # Show the window
     inter.mainloop()
 
