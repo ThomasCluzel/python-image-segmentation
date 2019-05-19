@@ -8,7 +8,7 @@ an image with less shading.
 
 ### For those who want to use
 
-Checkout to the release branch and follow the instruction to install
+Checkout to the release branch and follow the instructions to install
 the module with `pip`.
 
 ### For those who want to contribute
@@ -40,6 +40,8 @@ If no output file is given, the picture is displayed on the screen.
 
 If no parameter is given to the algorithm (-p value) the default one is used.
 
+A gui is also available by launching the file "guipicture2avatar.pyw".
+
 ### List of available algorithms
 
 * _pre_: Performs a threshold on each band of the picture
@@ -50,6 +52,7 @@ If no parameter is given to the algorithm (-p value) the default one is used.
     of the same region
 * _clu_: Performs a clustering on the colors of the image
     * optional parameter: number of colors to keep at the end
+    * nb: it can be very long to process
 * _greed_: Use a greedy algorithm to keep only a given number of colors of
-the picture (faster then clustering)
+the picture (faster than clustering)
     * optional parameter: number of colors to keep at the end
