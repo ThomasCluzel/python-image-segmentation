@@ -53,8 +53,3 @@ If no parameter is given to the algorithm (-p value) the default one is used.
 * _greed_: Use a greedy algorithm to keep only a given number of colors of
 the picture (faster then clustering)
     * optional parameter: number of colors to keep at the end
-
-## TODOs
-
-* design a GUI to select the input and the algorithm and see
-the result on screen and optionally save it

@@ -32,6 +32,7 @@ class Picture2AvatarGUI(Frame):
         # Create the frames
         self.frame_input = Frame(self)
         self.frame_pictures = Frame(self)
+        self.frame_message = Frame(self)
         self.frame_alg_pre = Frame(self)
         self.frame_alg_grow = Frame(self)
         self.frame_alg_clu = Frame(self)
@@ -46,26 +47,28 @@ class Picture2AvatarGUI(Frame):
         self.input_image = self.canvas_input_image.create_image(0,0, anchor="nw")
         self.canvas_output_image = Canvas(self.frame_pictures)
         self.output_image = self.canvas_output_image.create_image(0,0, anchor="nw")
+        self.label_message = Label(self.frame_message, text="")
         self.label_alg_pre = Label(self.frame_alg_pre, text="mask_length=")
         self.str_alg_pre_max_length = StringVar()
         self.scale_alg_pre_max_length = Entry(self.frame_alg_pre, textvariable=self.str_alg_pre_max_length, width=5)
-        self.button_alg_pre_run = Button(self.frame_alg_pre, text="run", command=self.run_pre)
+        self.button_alg_pre_run = Button(self.frame_alg_pre, text="run pre", command=self.run_pre)
         self.label_alg_grow = Label(self.frame_alg_grow, text="maxgap=")
         self.str_alg_grow_maxgap = StringVar()
         self.scale_alg_grow_maxgap = Entry(self.frame_alg_grow, textvariable=self.str_alg_grow_maxgap, width=5)
-        self.button_alg_grow_run = Button(self.frame_alg_grow, text="run", command=self.run_grow)
+        self.button_alg_grow_run = Button(self.frame_alg_grow, text="run grow", command=self.run_grow)
         self.label_alg_clu = Label(self.frame_alg_clu, text="nb_color_keep=")
         self.str_alg_clu_nb_color_keep = StringVar()
         self.scale_alg_clu_nb_color_keep = Entry(self.frame_alg_clu, textvariable=self.str_alg_clu_nb_color_keep, width=5)
-        self.button_alg_clu_run = Button(self.frame_alg_clu, text="run", command=self.run_clu)
+        self.button_alg_clu_run = Button(self.frame_alg_clu, text="run clu", command=self.run_clu)
         self.label_alg_greed = Label(self.frame_alg_greed, text="nb_color_keep=")
         self.str_alg_greed_nb_color_keep = StringVar()
         self.scale_alg_greed_nb_color_keep = Entry(self.frame_alg_greed, textvariable=self.str_alg_greed_nb_color_keep, width=5)
-        self.button_alg_greed_run = Button(self.frame_alg_greed, text="run", command=self.run_greed)
+        self.button_alg_greed_run = Button(self.frame_alg_greed, text="run greed", command=self.run_greed)
         self.button_save_as = Button(self.frame_save_as, text="Save output as", command=self.save_as)
         # Display the widgets in the window
         self.frame_input.pack(fill="x", expand=1)
         self.frame_pictures.pack(fill="x", expand=1)
+        self.frame_message.pack(fill="x", expand=1)
         self.frame_alg_pre.pack(fill="x", expand=1)
         self.frame_alg_grow.pack(fill="x", expand=1)
         self.frame_alg_clu.pack(fill="x", expand=1)
@@ -76,6 +79,7 @@ class Picture2AvatarGUI(Frame):
         self.button_browse_input_path.pack(side="left")
         self.canvas_input_image.pack(side="left")
         self.canvas_output_image.pack(side="left")
+        self.label_message.pack(fill="x")
         self.label_alg_pre.pack(side="left")
         self.scale_alg_pre_max_length.pack(side="left")
         self.button_alg_pre_run.pack(side="left")
@@ -96,7 +100,10 @@ class Picture2AvatarGUI(Frame):
         the main window). It removes temporary files.
         """
         Frame.destroy(self)
-        os.remove(Picture2AvatarGUI.OUTPUT_PATH)
+        try:
+            os.remove(Picture2AvatarGUI.OUTPUT_PATH)
+        except:
+            pass # FileNotFoundError, we remove if it exists
 
     def browse(self):
         """
@@ -120,7 +127,7 @@ class Picture2AvatarGUI(Frame):
 
     def run_pre(self):
         """
-        This method is called when the user click the "run" button in the pre frame.
+        This method is called when the user click the "run pre" button.
         It runs the algorithm to perform the computation and then display the picture.
         """
         # parse the argument if any
@@ -133,22 +140,62 @@ class Picture2AvatarGUI(Frame):
         if(not 1<=param<=8):
             messagebox.showerror("Error", "Please enter a value between 1 and 8.", parent=self)
             return
+        self.label_message["text"] = "Processing input..."
         self.after_idle(callback_run, self, "pre", param)
 
     def run_grow(self):
-        """TODO
         """
-        pass
+        This method is called when the user click the "run grow" button.
+        It runs the algorithm to perform the computation and then display the picture.
+        """
+        # parse the argument if any
+        param = self.str_alg_grow_maxgap.get()
+        try:
+            param = int(param) if param else 25
+        except ValueError:
+            messagebox.showerror("Error", "Please enter an integer value between 1 and 254.", parent=self)
+            return
+        if(not 1<=param<=254):
+            messagebox.showerror("Error", "Please enter a value between 1 and 254.", parent=self)
+            return
+        self.label_message["text"] = "Processing input..."
+        self.after_idle(callback_run, self, "grow", param)
     
     def run_clu(self):
-        """TODO
         """
-        pass
+        This method is called when the user click the "run clu" button.
+        It runs the algorithm to perform the computation and then display the picture.
+        """
+        # parse the argument if any
+        param = self.str_alg_clu_nb_color_keep.get()
+        try:
+            param = int(param) if param else 15
+        except ValueError:
+            messagebox.showerror("Error", "Please enter an integer value greater than 1.", parent=self)
+            return
+        if(not 1<=param):
+            messagebox.showerror("Error", "Please enter a value greater than 1.", parent=self)
+            return
+        self.label_message["text"] = "Processing input..."
+        self.after_idle(callback_run, self, "clu", param)
 
     def run_greed(self):
-        """TODO
         """
-        pass
+        This method is called when the user click the "run greed".
+        It runs the algorithm to perform the computation and then display the picture.
+        """
+        # parse the argument if any
+        param = self.str_alg_greed_nb_color_keep.get()
+        try:
+            param = int(param) if param else 10
+        except ValueError:
+            messagebox.showerror("Error", "Please enter an integer value greater than 1.", parent=self)
+            return
+        if(not 1<=param):
+            messagebox.showerror("Error", "Please enter a value greater than 1.", parent=self)
+            return
+        self.label_message["text"] = "Processing input..."
+        self.after_idle(callback_run, self, "greed", param)
 
     def save_as(self):
         """
@@ -177,6 +224,7 @@ def callback_run(self, algorithm, param):
             messagebox.showerror("Error", "Please, select a picture.", parent=self)
         else:
             messagebox.showerror("Error", "The picture cannot be openned.", parent=self)
+        self.label_message["text"] = ""
         return
     # get the result
     img = None
@@ -184,6 +232,7 @@ def callback_run(self, algorithm, param):
         img = Image.open(Picture2AvatarGUI.OUTPUT_PATH)
     except IOError:
         messagebox.showerror("Error", "The output was not generated.", parent=self)
+        self.label_message["text"] = ""
         return
     # display the result
     img = img.resize((400, 400*img.size[1]//img.size[0]))
@@ -191,6 +240,7 @@ def callback_run(self, algorithm, param):
     self.canvas_output_image["height"] = img.size[1]
     self.output_image_tk = ImageTk.PhotoImage(img) # to keep a reference
     self.canvas_output_image.itemconfig(self.output_image, image=self.output_image_tk)
+    self.label_message["text"] = ""
 
 def gui():
     """
@@ -199,7 +249,7 @@ def gui():
     # Create the window and its contents
     root = Tk()
     root.title("Picture2Avatar")
-    # window.iconbitmap("icon.ico") # TODO: find an icon
+    root.iconbitmap("icon.ico")
     inter = Picture2AvatarGUI(root)
     # Show the window
     inter.mainloop()
