@@ -8,8 +8,8 @@ an image with less shading.
 
 ### For those who want to use
 
-Checkout to the release branch and follow the instructions to install
-the module with `pip`.
+Go to the release page and follow the instructions to download and to
+install the module with `pip`.
 
 Or clone this repository and use the GUI (guipicture2avatar.pyw).
 
@@ -54,7 +54,7 @@ A gui is also available by launching the file "guipicture2avatar.pyw".
     of the same region
 * _clu_: Performs a clustering on the colors of the image
     * optional parameter: number of colors to keep at the end
-    * nb: it can be very long to process
+    * :warning: it can be very long to process
 * _greed_: Use a greedy algorithm to keep only a given number of colors of
 the picture (faster than clustering)
     * optional parameter: number of colors to keep at the end
