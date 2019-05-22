@@ -8,10 +8,19 @@ an image with less shading.
 
 ### For those who want to use
 
-Go to the release page and follow the instructions to download and to
-install the module with `pip`.
+Go to the
+[release page](https://github.com/ThomasCluzel/python-image-segmentation/releases)
+and follow the instructions to download and to install the module with `pip`.
 
-Or clone this repository and use the GUI (guipicture2avatar.pyw).
+Then, you will be able to type in a terminal:
+* `python -m picture2avatar [args...]` to run the command line tool
+* `picture2avatar` to launch the gui
+
+You will also be able to use the module in other projects:
+```python
+import picture2avatar
+help(picture2avatar)
+```
 
 ### For those who want to contribute
 
@@ -27,22 +36,24 @@ To run unit tests and generate coverage info:
 pipenv run pytest --cov=picture2avatar --cov-report html
 ```
 
+To package the module:
+```sh
+pipenv run python setup.py sdist bdist_wheel
+```
+
 ## Usage
 
 Apply an algorithm to a picture and store the result in a file:
-
 ```sh
 # Example
-python3 picture2avatar.py input_picture.jpg pre -o result.jpg -p 10
+pipenv run python picture2avatar.py input_picture.jpg pre -o result.jpg -p 10
 # Help
-python3 picture2avatar.py -h
+pipenv run python picture2avatar.py -h
+# GUI
+pipenv run python guipicture2avatar.pyw
 ```
-
-If no output file is given, the picture is displayed on the screen.
-
-If no parameter is given to the algorithm (-p value) the default one is used.
-
-A gui is also available by launching the file "guipicture2avatar.pyw".
+* If no output file is given, the picture is displayed on the screen.
+* If no parameter is given to the algorithm ("-p value") the default one is used.
 
 ### List of available algorithms
 
