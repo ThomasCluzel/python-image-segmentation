@@ -1,8 +1,10 @@
-# Picture2Avatar
+# Image segmentation with Python
 
 This project is a simple script that process a
-photograph to simplify the color palette and obtain
+picture to simplify its color palette and obtain
 an image with less shading.
+
+It is only an experiment, not a ready-to-use software.
 
 ## Installation
 
