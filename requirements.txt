@@ -1,2 +1,2 @@
 -i https://pypi.org/simple/
-pillow==6.2.2
+pillow>=7.1.0
